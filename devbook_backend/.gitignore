@@ -1,0 +1,28 @@
+# Dependências
+/vendor/
+
+# Arquivos de build
+/bin/
+/build/
+
+# Arquivos executáveis
+*.exe
+*.out
+*.test
+*.sh
+
+# Arquivos temporários de editor
+.idea/
+.vscode/
+*.swp
+*~
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+/tmp/
+
+# Outros arquivos do sistema operacional (exemplo: macOS, Windows)
+.DS_Store
+Thumbs.db
