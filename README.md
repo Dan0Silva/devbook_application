@@ -1,5 +1,12 @@
 # Protótipo de Rede Social - Devbook
 
+<p align="center">
+  <img src="https://media.giphy.com/media/Dh5q0sShxgp13DwrvG/giphy.gif" width="240" height="149" />
+</p>
+
+
+
+---
 Este é um protótipo de rede social desenvolvido em Go, onde os usuários podem criar posts com texto. O backend do projeto é implementado em Go e o banco de dados é executado dentro de um container Docker. O projeto está configurado para facilitar o desenvolvimento de uma aplicação completa com frontend e backend no mesmo repositório.
 
 ## Funcionalidades
