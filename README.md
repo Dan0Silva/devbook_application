@@ -1,4 +1,5 @@
-# Protótipo de Rede Social - Devbook
+<h1 align="center">Protótipo de Rede Social - Devbook</h1>
+
 
 <p align="center">
   <img src="https://media.giphy.com/media/Dh5q0sShxgp13DwrvG/giphy.gif" width="240" height="149" />
