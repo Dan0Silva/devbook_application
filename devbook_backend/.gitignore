@@ -20,6 +20,9 @@
 # Arquivos de log
 *.log
 
+# Variaveis de ambiente
+.env
+
 # Arquivos temporários
 /tmp/
 
