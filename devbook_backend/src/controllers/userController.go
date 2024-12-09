@@ -23,6 +23,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err = user.Prepare(); err != nil {
+		response.Error(w, "Missing required field error", http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
 	db, err := database.Connect()
 	if err != nil {
 		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
