@@ -4,6 +4,7 @@ import (
 	"devbook_backend/src/database"
 	"devbook_backend/src/models"
 	"devbook_backend/src/repository"
+	"devbook_backend/src/response"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -12,36 +13,32 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		w.Write([]byte("Erro ao tentar ler o corpo da requisição"))
+		response.Error(w, "Error trying to read the request body", http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
 	var user models.User
 	if err = json.Unmarshal(reqBody, &user); err != nil {
-		w.Write([]byte("Erro ao converter corpo da requisição para json"))
+		response.Error(w, "Error converting request body to JSON", http.StatusBadRequest, err.Error())
 		return
 	}
 
 	db, err := database.Connect()
 	if err != nil {
-		w.Write([]byte("Erro ao tentar coneção com o banco"))
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
 		return
 	}
 	defer db.Close()
 
 	userRepository := repository.NewUsersRepository(db)
 
-	_, err = userRepository.Create(user)
+	err = userRepository.Create(user)
 	if err != nil {
-		w.Write([]byte("Erro ao criar usuário"))
+		response.Error(w, "Error creating user", http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Usuário criado com sucesso"))
-
-	// statement, err := db.Prepare("insert into USERS ")
+	response.Success(w, http.StatusCreated, nil)
 }
 
 func GetAllUsers(w http.ResponseWriter, r *http.Request) {

@@ -3,8 +3,6 @@ package repository
 import (
 	"database/sql"
 	"devbook_backend/src/models"
-
-	"github.com/google/uuid"
 )
 
 type users struct {
@@ -15,6 +13,19 @@ func NewUsersRepository(db *sql.DB) *users {
 	return &users{db}
 }
 
-func (u users) Create(user models.User) (uuid.UUID, error) {
-	return uuid.NewUUID()
+func (repository users) Create(user models.User) error {
+	statement, err := repository.db.Prepare("insert into USERS (NAME, NICK, EMAIL, PASSWORD) values (?, ?, ?, ?)")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	t, err := statement.Exec(user.Name, user.Nick, user.Email, user.Password)
+	if err != nil {
+		return err
+	}
+
+	t.LastInsertId()
+
+	return nil
 }
