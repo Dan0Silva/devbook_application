@@ -46,8 +46,35 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusCreated, nil)
 }
 
-func GetAllUsers(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("GetAllUsers"))
+func SearchUsers(w http.ResponseWriter, r *http.Request) {
+	search := r.URL.Query().Get("search")
+
+	if search == "" {
+		response.Error(w, "Empty search field", http.StatusNoContent, nil)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepository := repository.NewUsersRepository(db)
+
+	result, err := userRepository.Search(search)
+	if err != nil {
+		response.Error(w, "Error trying search a term", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	formatedResult := map[string]interface{}{
+		"count":   len(result),
+		"results": result,
+	}
+
+	response.Success(w, http.StatusOK, formatedResult)
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request) {
