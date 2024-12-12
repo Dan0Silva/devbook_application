@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -77,12 +80,68 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, formatedResult)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("GetUser"))
+func GetUserById(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId := params["userId"]
+
+	if _, err := uuid.Parse(userId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepository := repository.NewUsersRepository(db)
+
+	result, err := userRepository.SearchById(userId)
+	if err != nil {
+		response.Error(w, "Error to get user by id", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, result)
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("UpdateUser"))
+	params := mux.Vars(r)
+	userId := params["userId"]
+	var user models.User
+
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, "Error trying to read the request body", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if _, err := uuid.Parse(userId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err = json.Unmarshal(reqBody, &user); err != nil {
+		response.Error(w, "Error converting request body to JSON", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepository := repository.NewUsersRepository(db)
+	if err = userRepository.UpdateUser(userId, user); err != nil {
+		response.Error(w, "Error trying update user", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, user)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
