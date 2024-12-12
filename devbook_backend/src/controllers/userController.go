@@ -26,7 +26,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = user.Prepare(); err != nil {
+	if err = user.Prepare("register"); err != nil {
 		response.Error(w, "Missing required field error", http.StatusUnprocessableEntity, err.Error())
 		return
 	}
@@ -81,8 +81,7 @@ func SearchUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetUserById(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	userId := params["userId"]
+	userId := mux.Vars(r)["userId"]
 
 	if _, err := uuid.Parse(userId); err != nil {
 		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
@@ -108,8 +107,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateUser(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	userId := params["userId"]
+	userId := mux.Vars(r)["userId"]
 	var user models.User
 
 	reqBody, err := io.ReadAll(r.Body)
@@ -125,6 +123,11 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err = json.Unmarshal(reqBody, &user); err != nil {
 		response.Error(w, "Error converting request body to JSON", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = user.Prepare("update"); err != nil {
+		response.Error(w, "Missing required field error", http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 
@@ -145,5 +148,26 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("DeleteUser"))
+	userId := mux.Vars(r)["userId"]
+
+	if _, err := uuid.Parse(userId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepository := repository.NewUsersRepository(db)
+
+	if err = userRepository.Delete(userId); err != nil {
+		response.Error(w, "Error to try delete user", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusNoContent, nil)
 }
