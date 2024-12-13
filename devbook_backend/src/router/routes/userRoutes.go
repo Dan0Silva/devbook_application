@@ -13,7 +13,7 @@ var UserRoutes = []Routes{
 		RequireAuth: false,
 	},
 	{
-		Uri:         "/users", // read all
+		Uri:         "/users", // search user
 		Method:      http.MethodGet,
 		Function:    userController.SearchUsers,
 		RequireAuth: false,

@@ -14,7 +14,12 @@ type Routes struct {
 }
 
 func GenerateRoutes(router *mux.Router) {
-	for _, route := range UserRoutes {
+	allRoutes := []Routes{}
+
+	allRoutes = append(allRoutes, UserRoutes...)
+	allRoutes = append(allRoutes, LoginRoutes...)
+
+	for _, route := range allRoutes {
 		router.HandleFunc(route.Uri, route.Function).Methods(route.Method)
 	}
 }
