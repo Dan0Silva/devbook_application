@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"devbook_backend/src/authentication"
 	"devbook_backend/src/database"
 	"devbook_backend/src/models"
 	"devbook_backend/src/repository"
@@ -121,6 +122,17 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userIdFromToken, err := authentication.GetUserIDFromToken(r)
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if userId != userIdFromToken {
+		response.Error(w, "You do not have permission to perform the operation", http.StatusForbidden, nil)
+		return
+	}
+
 	if err = json.Unmarshal(reqBody, &user); err != nil {
 		response.Error(w, "Error converting request body to JSON", http.StatusInternalServerError, err.Error())
 		return
@@ -144,7 +156,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.Success(w, http.StatusOK, user)
+	response.Success(w, http.StatusOK, nil)
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {

@@ -28,12 +28,12 @@ var UserRoutes = []Routes{
 		Uri:         "/users/{userId}", // update
 		Method:      http.MethodPut,
 		Function:    userController.UpdateUser,
-		RequireAuth: false,
+		RequireAuth: true,
 	},
 	{
 		Uri:         "/users/{userId}", // delete
 		Method:      http.MethodDelete,
 		Function:    userController.DeleteUser,
-		RequireAuth: false,
+		RequireAuth: true,
 	},
 }

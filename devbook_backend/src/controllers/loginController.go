@@ -46,7 +46,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userToken, err := authentication.CreateToken(user.Id)
+	userToken, err := authentication.CreateToken(userFromDB.Id)
 	if err != nil {
 		response.Error(w, "Error to create user token", http.StatusInternalServerError, err.Error())
 		return
