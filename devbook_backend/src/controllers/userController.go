@@ -194,3 +194,39 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 	response.Success(w, http.StatusNoContent, nil)
 }
+
+func FollowUser(w http.ResponseWriter, r *http.Request) {
+	followedUserId := mux.Vars(r)["userId"]
+
+	followingUserId, err := authentication.GetUserIDFromToken(r)
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if _, err := uuid.Parse(followedUserId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if followedUserId == followingUserId {
+		response.Error(w, "You can't follow yourself", http.StatusBadRequest, nil)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	followersRepository := repository.NewFollowersRepository(db)
+	err = followersRepository.Follow(followingUserId, followedUserId)
+	if err != nil {
+		response.Error(w, "", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusNoContent, nil)
+}
