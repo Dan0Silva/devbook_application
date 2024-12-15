@@ -230,3 +230,34 @@ func FollowUser(w http.ResponseWriter, r *http.Request) {
 
 	response.Success(w, http.StatusNoContent, nil)
 }
+
+func UnfollowUser(w http.ResponseWriter, r *http.Request) {
+	followedUserId := mux.Vars(r)["userId"]
+
+	followingUserId, err := authentication.GetUserIDFromToken(r)
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if _, err := uuid.Parse(followedUserId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	followersRepository := repository.NewFollowersRepository(db)
+	err = followersRepository.Unfollow(followingUserId, followedUserId)
+	if err != nil {
+		response.Error(w, "Unable to unfollow the user", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusNoContent, nil)
+}
