@@ -57,7 +57,9 @@ func (repository followers) GetUserFollowing(userId string) ([]models.User, erro
 	var user models.User
 	var usersList []models.User
 
-	rows, err := repository.db.Query("SELECT ID, NAME, NICK, EMAIL FROM USERS JOIN FOLLOWERS F ON F.FOLLOWED_ID = USERS.ID WHERE F.FOLLOWING_ID = ?", userId)
+	rows, err := repository.db.Query(`
+		SELECT ID, NAME, NICK, EMAIL FROM USERS JOIN FOLLOWERS F ON F.FOLLOWED_ID = USERS.ID WHERE F.FOLLOWING_ID = ?
+	`, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +80,9 @@ func (repository followers) GetUserFollowers(userId string) ([]models.User, erro
 	var user models.User
 	var usersList []models.User
 
-	rows, err := repository.db.Query("SELECT ID, NAME, NICK, EMAIL FROM USERS JOIN FOLLOWERS F ON F.FOLLOWING_ID = USERS.ID WHERE F.FOLLOWED_ID = ?", userId)
+	rows, err := repository.db.Query(`
+		SELECT ID, NAME, NICK, EMAIL FROM USERS JOIN FOLLOWERS F ON F.FOLLOWING_ID = USERS.ID WHERE F.FOLLOWED_ID = ?
+	`, userId)
 	if err != nil {
 		return nil, err
 	}

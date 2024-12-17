@@ -135,3 +135,36 @@ func (repository users) GetByEmail(email string) (*models.User, error) {
 
 	return &user, nil
 }
+
+func (repository users) GetUserPassword(id string) (*string, error) {
+	var password string
+
+	rows, err := repository.db.Query("SELECT PASSWORD FROM USERS WHERE ID = ?;", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err := rows.Scan(&password); err != nil {
+			return nil, err
+		}
+	}
+
+	return &password, err
+}
+
+func (repository users) UpdatePassoword(id string, password string) error {
+	statement, err := repository.db.Prepare(`UPDATE USERS SET PASSWORD = ? WHERE ID = ?;`)
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(password, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

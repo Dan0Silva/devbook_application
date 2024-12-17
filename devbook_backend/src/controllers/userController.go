@@ -6,6 +6,7 @@ import (
 	"devbook_backend/src/models"
 	"devbook_backend/src/repository"
 	"devbook_backend/src/response"
+	"devbook_backend/src/security"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -195,6 +196,65 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusNoContent, nil)
 }
 
+func UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userId, err := authentication.GetUserIDFromToken(r)
+	var updatePasswordStruct models.UpdateUserPassword
+
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if _, err = uuid.Parse(userId); err != nil {
+		response.Error(w, "Invalid ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, "Error trying to read the request body", http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	if err = json.Unmarshal(reqBody, &updatePasswordStruct); err != nil {
+		response.Error(w, "Error converting request body to JSON", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	userRepository := repository.NewUsersRepository(db)
+
+	hashedDbPassword, err := userRepository.GetUserPassword(userId)
+	if err != nil {
+		response.Error(w, "Error retrieving password saved in database", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = security.VerifyPassword(updatePasswordStruct.OldPassword, *hashedDbPassword); err != nil {
+		response.Error(w, "Passwords do not match", http.StatusUnprocessableEntity, nil)
+		return
+	}
+
+	newPasswordByte, err := security.Hash(updatePasswordStruct.NewPassword)
+	if err != nil {
+		response.Error(w, "Problem creating new password hash", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if err = userRepository.UpdatePassoword(userId, string(newPasswordByte)); err != nil {
+		response.Error(w, "Problem when trying to update password in the bank", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusNoContent, "Update password successful!")
+}
+
 func FollowUser(w http.ResponseWriter, r *http.Request) {
 	followedUserId := mux.Vars(r)["userId"]
 
@@ -285,12 +345,7 @@ func GetUserFollowing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newResponse := map[string]interface{}{
-		"userId":    userId,
-		"following": following,
-	}
-
-	response.Success(w, http.StatusOK, newResponse)
+	response.Success(w, http.StatusOK, following)
 }
 
 func GetUserFollowers(w http.ResponseWriter, r *http.Request) {
@@ -316,10 +371,5 @@ func GetUserFollowers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newResponse := map[string]interface{}{
-		"userId":    userId,
-		"followers": followers,
-	}
-
-	response.Success(w, http.StatusOK, newResponse)
+	response.Success(w, http.StatusOK, followers)
 }
