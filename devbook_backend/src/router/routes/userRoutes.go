@@ -42,28 +42,4 @@ var UserRoutes = []Routes{
 		Function:    userController.UpdatePassword,
 		RequireAuth: true,
 	},
-	{
-		Uri:         "/follow/{userId}",
-		Method:      http.MethodPost,
-		Function:    userController.FollowUser,
-		RequireAuth: true,
-	},
-	{
-		Uri:         "/follow/{userId}",
-		Method:      http.MethodDelete,
-		Function:    userController.UnfollowUser,
-		RequireAuth: true,
-	},
-	{
-		Uri:         "/following/{userId}",
-		Method:      http.MethodGet,
-		Function:    userController.GetUserFollowing,
-		RequireAuth: true,
-	},
-	{
-		Uri:         "/followers/{userId}",
-		Method:      http.MethodGet,
-		Function:    userController.GetUserFollowers,
-		RequireAuth: true,
-	},
 }

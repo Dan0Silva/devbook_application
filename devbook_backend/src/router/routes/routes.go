@@ -19,6 +19,7 @@ func GenerateRoutes(router *mux.Router) {
 
 	allRoutes = append(allRoutes, UserRoutes...)
 	allRoutes = append(allRoutes, LoginRoutes...)
+	allRoutes = append(allRoutes, FollowersRoutes...)
 
 	for _, route := range allRoutes {
 
