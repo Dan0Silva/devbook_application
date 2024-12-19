@@ -1,33 +1,33 @@
 package routes
 
 import (
-	followersController "devbook_backend/src/controllers"
+	followerController "devbook_backend/src/controllers"
 	"net/http"
 )
 
-var FollowersRoutes = []Routes{
+var FollowerRoutes = []Routes{
 	{
 		Uri:         "/follow/{userId}",
 		Method:      http.MethodPost,
-		Function:    followersController.FollowUser,
+		Function:    followerController.FollowUser,
 		RequireAuth: true,
 	},
 	{
 		Uri:         "/follow/{userId}",
 		Method:      http.MethodDelete,
-		Function:    followersController.UnfollowUser,
+		Function:    followerController.UnfollowUser,
 		RequireAuth: true,
 	},
 	{
 		Uri:         "/following/{userId}",
 		Method:      http.MethodGet,
-		Function:    followersController.GetUserFollowing,
+		Function:    followerController.GetUserFollowing,
 		RequireAuth: true,
 	},
 	{
 		Uri:         "/followers/{userId}",
 		Method:      http.MethodGet,
-		Function:    followersController.GetUserFollowers,
+		Function:    followerController.GetUserFollowers,
 		RequireAuth: true,
 	},
 }
