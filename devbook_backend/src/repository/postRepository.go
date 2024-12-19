@@ -50,3 +50,25 @@ func (repository posts) Create(userId string, post models.Post) (*models.Post, e
 
 	return &post, nil
 }
+
+func (repository posts) GetUserPosts(userId string) ([]models.Post, error) {
+	var postsList []models.Post
+
+	rows, err := repository.db.Query("select ID, TITLE, CONTENT, AUTHOR_NICK, LIKES from POSTS where AUTHOR_ID = ?", userId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var post models.Post
+
+		if err = rows.Scan(&post.Id, &post.Title, &post.Content, &post.AuthorNick, &post.Likes); err != nil {
+			return nil, err
+		}
+
+		postsList = append(postsList, post)
+	}
+
+	return postsList, nil
+}
