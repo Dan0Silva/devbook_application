@@ -12,6 +12,8 @@ import (
 func main() {
 	config.LoadEnvironment()
 
+	// dbseed.PopulateDatabase(30, 20)
+
 	port := config.Port
 
 	router := router.Generate()

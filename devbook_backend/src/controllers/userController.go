@@ -237,17 +237,17 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = security.VerifyPassword(updatePasswordStruct.OldPassword, *hashedDbPassword); err != nil {
-		response.Error(w, "Passwords do not match", http.StatusUnprocessableEntity, nil)
+		response.Error(w, "Passwords do not match", http.StatusUnauthorized, nil)
 		return
 	}
 
-	newPasswordByte, err := security.Hash(updatePasswordStruct.NewPassword)
+	newPasswordHashed, err := security.Hash(updatePasswordStruct.NewPassword)
 	if err != nil {
 		response.Error(w, "Problem creating new password hash", http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	if err = userRepository.UpdatePassoword(userId, string(newPasswordByte)); err != nil {
+	if err = userRepository.UpdatePassoword(userId, string(newPasswordHashed)); err != nil {
 		response.Error(w, "Problem when trying to update password in the bank", http.StatusInternalServerError, err.Error())
 		return
 	}
