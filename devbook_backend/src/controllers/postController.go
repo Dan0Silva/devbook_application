@@ -52,6 +52,25 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusNoContent, createdPost)
 }
 
+func GetAllPosts(w http.ResponseWriter, r *http.Request) {
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	postRepository := repository.NewPostRepository(db)
+
+	posts, err := postRepository.GetAllPosts()
+	if err != nil {
+		response.Error(w, "Error to trying get posts", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, posts)
+}
+
 func GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	userId := mux.Vars(r)["userId"]
 

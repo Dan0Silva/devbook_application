@@ -135,3 +135,31 @@ func (repository posts) Delete(postId string) error {
 
 	return nil
 }
+
+func (repository posts) GetAllPosts() ([]models.Post, error) {
+	var postsList []models.Post
+
+	rows, err := repository.db.Query("select ID, TITLE, CONTENT, AUTHOR_NICK, LIKES, CREATED_AT from POSTS")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var newPost models.Post
+
+		if err := rows.Scan(
+			&newPost.Id,
+			&newPost.Title,
+			&newPost.Content,
+			&newPost.AuthorNick,
+			&newPost.Likes,
+			&newPost.CreatedAt); err != nil {
+			return nil, err
+		}
+
+		postsList = append(postsList, newPost)
+	}
+
+	return postsList, nil
+}
