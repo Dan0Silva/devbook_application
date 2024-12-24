@@ -77,3 +77,58 @@ func GetUserPosts(w http.ResponseWriter, r *http.Request) {
 
 	response.Success(w, http.StatusOK, posts)
 }
+
+func UpdatePost(w http.ResponseWriter, r *http.Request) {
+	postId := mux.Vars(r)["postId"]
+	var post models.Post
+	var authorId string
+
+	userId, err := authentication.GetUserIDFromToken(r)
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	reqBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, "Error trying to read the request body", http.StatusUnprocessableEntity, err.Error())
+		return
+	}
+
+	if _, err := uuid.Parse(postId); err != nil {
+		response.Error(w, "Invalid post ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := json.Unmarshal(reqBody, &post); err != nil {
+		response.Error(w, "Error converting request body to JSON", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	postRepository := repository.NewPostRepository(db)
+
+	authorId, err = postRepository.GetAuthorIdByPostId(postId)
+	if err != nil {
+		response.Error(w, "Error getting the author of the post", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if authorId != userId {
+		response.Error(w, "Don't have permission to edit posts of others users", http.StatusUnauthorized, nil)
+		return
+	}
+
+	if err = postRepository.UpdatePost(userId, postId, post); err != nil {
+		response.Error(w, "Error to update post", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusOK, nil)
+}

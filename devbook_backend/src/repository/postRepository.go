@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"devbook_backend/src/models"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -71,4 +72,51 @@ func (repository posts) GetUserPosts(userId string) ([]models.Post, error) {
 	}
 
 	return postsList, nil
+}
+
+func (repository posts) GetAuthorIdByPostId(postId string) (string, error) {
+	var authorId string
+
+	rows, err := repository.db.Query("select AUTHOR_ID from POSTS where ID = ?", postId)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		if err = rows.Scan(&authorId); err != nil {
+			return "", err
+		}
+	}
+
+	return authorId, nil
+
+}
+
+func (repository posts) UpdatePost(userId, postId string, post models.Post) error {
+	titleStatement, err := repository.db.Prepare("update POSTS set TITLE = ? where ID = ? and AUTHOR_ID = ?")
+	if err != nil {
+		return err
+	}
+	defer titleStatement.Close()
+
+	contentStatement, err := repository.db.Prepare("update POSTS set CONTENT = ? where ID = ? and AUTHOR_ID = ?")
+	if err != nil {
+		return err
+	}
+	defer contentStatement.Close()
+
+	if post.Title != "" {
+		if _, err := titleStatement.Exec(post.Title, postId, userId); err != nil {
+			return errors.New("error to update post title")
+		}
+	}
+
+	if post.Content != "" {
+		if _, err := contentStatement.Exec(post.Content, postId, userId); err != nil {
+			return errors.New("error to update post content")
+		}
+	}
+
+	return nil
 }
