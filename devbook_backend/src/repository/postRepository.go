@@ -93,7 +93,7 @@ func (repository posts) GetAuthorIdByPostId(postId string) (string, error) {
 
 }
 
-func (repository posts) UpdatePost(userId, postId string, post models.Post) error {
+func (repository posts) Update(userId, postId string, post models.Post) error {
 	titleStatement, err := repository.db.Prepare("update POSTS set TITLE = ? where ID = ? and AUTHOR_ID = ?")
 	if err != nil {
 		return err
@@ -116,6 +116,21 @@ func (repository posts) UpdatePost(userId, postId string, post models.Post) erro
 		if _, err := contentStatement.Exec(post.Content, postId, userId); err != nil {
 			return errors.New("error to update post content")
 		}
+	}
+
+	return nil
+}
+
+func (repository posts) Delete(postId string) error {
+	statement, err := repository.db.Prepare("delete from POSTS where ID = ?")
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(postId)
+	if err != nil {
+		return err
 	}
 
 	return nil

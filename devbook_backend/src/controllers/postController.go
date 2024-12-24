@@ -125,10 +125,52 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = postRepository.UpdatePost(userId, postId, post); err != nil {
+	if err = postRepository.Update(userId, postId, post); err != nil {
 		response.Error(w, "Error to update post", http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	response.Success(w, http.StatusOK, nil)
+}
+
+func DeletePost(w http.ResponseWriter, r *http.Request) {
+	postId := mux.Vars(r)["postId"]
+	userId, err := authentication.GetUserIDFromToken(r)
+
+	if err != nil {
+		response.Error(w, "Error getting user id", http.StatusUnauthorized, err.Error())
+		return
+	}
+
+	if _, err = uuid.Parse(postId); err != nil {
+		response.Error(w, "Invalid post ID format", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, "Error trying to connect to the database", http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer db.Close()
+
+	postRepository := repository.NewPostRepository(db)
+
+	savedAuthorId, err := postRepository.GetAuthorIdByPostId(postId)
+	if err != nil {
+		response.Error(w, "Error from get post author id", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if userId != savedAuthorId {
+		response.Error(w, "Don't have permission to delete posts of others users", http.StatusUnauthorized, nil)
+		return
+	}
+
+	if err = postRepository.Delete(postId); err != nil {
+		response.Error(w, "Error to trying delete post", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response.Success(w, http.StatusNoContent, nil)
 }
